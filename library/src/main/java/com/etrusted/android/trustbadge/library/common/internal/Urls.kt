@@ -24,34 +24,43 @@
  */
 
 package com.etrusted.android.trustbadge.library.common.internal
-
 import com.etrusted.android.trustbadge.library.BuildConfig
+import com.etrusted.android.trustbadge.library.common.internal.EnvironmentKey.Companion.forRawValue
 
-private const val prodChannelsUrl = "https://api.etrusted.com/channels"
-private const val prodAuthUrl = "https://login.etrusted.com/oauth/token"
-private const val prodTrustbadgeDataUrl = "https://cdn1.api.trustedshops.com"
+internal const val prodChannelsUrl = "https://api.etrusted.com/channels"
+internal const val prodAuthUrl = "https://login.etrusted.com/oauth/token"
+internal const val prodTrustbadgeDataUrl = "https://cdn1.api.trustedshops.com"
 
-private const val devTrustbadgeDataUrl = "https://cdn1.api-qa.trustedshops.com"
+internal const val devChannelsUrl = "https://api.etrusted.koeln/"
+internal const val devAuthUrl = "https://login-integr.etrusted.com/"
+internal const val devTrustbadgeDataUrl = "https://cdn1.api-qa.trustedshops.com"
 
-internal class Urls {
-    companion object {
-        internal val authenticationUrl: String
-            get() = when (EnvironmentKey.forRawValue(BuildConfig.BUILD_TYPE)) {
-                EnvironmentKey.RELEASE -> prodAuthUrl
-                EnvironmentKey.DEBUG -> prodAuthUrl
-                else -> prodAuthUrl
-            }
-        internal val trustbadgeJsonUrl: String
-            get() = when (EnvironmentKey.forRawValue(BuildConfig.BUILD_TYPE)) {
-                EnvironmentKey.RELEASE -> prodTrustbadgeDataUrl
-                EnvironmentKey.DEBUG -> devTrustbadgeDataUrl
-                else -> prodTrustbadgeDataUrl
-            }
-        internal val channelAggregateRatingUrl: String
-            get() = when (EnvironmentKey.forRawValue(BuildConfig.BUILD_TYPE)) {
-                EnvironmentKey.RELEASE -> prodChannelsUrl
-                EnvironmentKey.DEBUG -> prodChannelsUrl
-                else -> prodChannelsUrl
-            }
-    }
+internal interface IUrls {
+    fun authenticationUrl(env: EnvironmentKey = forRawValue(BuildConfig.BUILD_TYPE)): String
+    fun trustbadgeJsonUrl(env: EnvironmentKey = forRawValue(BuildConfig.BUILD_TYPE)): String
+    fun channelAggregateRatingUrl(env: EnvironmentKey = forRawValue(BuildConfig.BUILD_TYPE)): String
+}
+
+object Urls: IUrls {
+
+    override fun authenticationUrl(env: EnvironmentKey): String
+        = when (env) {
+            EnvironmentKey.RELEASE -> prodAuthUrl
+            EnvironmentKey.DEBUG -> devAuthUrl
+            else -> prodAuthUrl
+        }
+
+    override fun trustbadgeJsonUrl(env: EnvironmentKey): String
+        = when (env) {
+            EnvironmentKey.RELEASE -> prodTrustbadgeDataUrl
+            EnvironmentKey.DEBUG -> devTrustbadgeDataUrl
+            else -> prodTrustbadgeDataUrl
+        }
+
+    override fun channelAggregateRatingUrl(env: EnvironmentKey): String
+        = when (env) {
+            EnvironmentKey.RELEASE -> prodChannelsUrl
+            EnvironmentKey.DEBUG -> devChannelsUrl
+            else -> prodChannelsUrl
+        }
 }

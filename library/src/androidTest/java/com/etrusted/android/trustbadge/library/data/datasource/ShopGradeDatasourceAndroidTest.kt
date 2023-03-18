@@ -1,5 +1,5 @@
 /*
- * Created by Ali Kabiri on 30.1.2023.
+ * Created by Ali Kabiri on 13.3.2023.
  * Copyright (c) 2023 Trusted Shops GmbH
  *
  * MIT License
@@ -23,28 +23,39 @@
  * SOFTWARE.
  */
 
-package com.etrusted.android.trustbadge.library.model
+package com.etrusted.android.trustbadge.library.data.datasource
 
+import com.etrusted.android.trustbadge.library.common.internal.EnvironmentKey
+import com.etrusted.android.trustbadge.library.common.internal.IUrls
 import com.etrusted.android.trustbadge.library.common.internal.ServerResponses
+import com.etrusted.android.trustbadge.library.common.internal.getUrlsFor
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import org.junit.Test
 
-class AuthenticationTokenAndroidTest {
+@OptIn(ExperimentalCoroutinesApi::class)
+internal class ShopGradeDatasourceAndroidTest {
 
     @Test
-    fun testFromStringReturnsCorrectAuthenticationToken() {
+    fun testFetchShopGradeDetailReturnsSuccessfully() = runTest {
+
         // arrange
-        val goodData = ServerResponses.AuthenticationTokenGoodResponse.content
+        val goodData = ServerResponses.ChannelInfoGoodResponse.content
+        val server = MockWebServer()
+        server.enqueue(MockResponse().apply { setBody(goodData) })
+        server.start()
+        val mockUrl = server.url("")
+        val mockUrlRoot = "http://${mockUrl.host}:${mockUrl.port}/"
+        val mockUrls = getUrlsFor(mockUrlRoot)
+        val sut = ShopGradeDetailDatasource(urls = mockUrls)
 
         // act
-        val authenticationToken = AuthenticationToken.fromJson(goodData)
+        val result = sut.fetchShopGradeDetail("fakeChannelId", "fakeAccessToken")
 
         // assert
-        assertThat(authenticationToken.accessToken).isEqualTo("eyJBla.eyJBla.eMJBla")
-        assertThat(authenticationToken.expiresIn).isEqualTo(3600)
-        assertThat(authenticationToken.refreshExpiresIn).isEqualTo(0)
-        assertThat(authenticationToken.tokenType).isEqualTo("Bearer")
-        assertThat(authenticationToken.scope).isEqualTo("email profile")
-        assertThat(authenticationToken.notBeforePolicy).isEqualTo(1651869373)
+        assertThat(result.isSuccess).isTrue()
     }
 }
